@@ -4,8 +4,8 @@ import Link from "next/link";
 import React from "react";
 
 function Logo({
-  fontSize = "2xl",
-  iconSize = 20,
+  fontSize = "xl",
+  iconSize = 16,
 }: {
   fontSize?: string;
   iconSize?: number;
@@ -13,10 +13,7 @@ function Logo({
   return (
     <Link
       href="/"
-      className={cn(
-        "text-2xl font-extrabold flex items-center gap-2",
-        fontSize
-      )}
+      className={cn("text-xl font-extrabold flex items-center gap-2", fontSize)}
     >
       <div className="rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 p-2">
         <SquareDashedMousePointer size={iconSize} className="stroke-white" />

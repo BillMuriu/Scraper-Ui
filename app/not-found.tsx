@@ -5,13 +5,13 @@ function NotFoundPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <div className="text-center">
-        <h1 className="text-6xl font-bold text-primary mb-4">404</h1>
+        <h1 className="text-6xl font-bold mb-4">404</h1>
         <h2 className="text-2xl font-semibold mb-4">NOT FOUND</h2>
         <p className="text-muted-foreground mb-8 max-w-md"></p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Link
             href={"/"}
-            className="flex items-center justify-center px-4 py-2 bg-primary text-black rounded-md hover:bg:primary/80 transition-colors"
+            className="flex items-center justify-center px-4 py-2 bg-primary text-white rounded-md hover:bg:primary/80 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
