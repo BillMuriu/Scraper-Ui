@@ -19,6 +19,8 @@ const nodeTypes = {
   FlowScrapeNode: NodeComponent,
 };
 
+const fitViewOptions = { padding: 2 };
+
 function FlowEditor({ workflow }: { workflow: Workflow }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([
     CreateFlowNode(TaskType.LAUNCH_BROWSER),
@@ -32,6 +34,8 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
         onEdgesChange={onEdgesChange}
         onNodesChange={onNodesChange}
         nodeTypes={nodeTypes}
+        fitViewOptions={fitViewOptions}
+        fitView
       >
         <Controls position="top-left" className="bg-primary" />
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
