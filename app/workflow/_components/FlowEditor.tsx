@@ -23,7 +23,7 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
         onEdgesChange={onEdgesChange}
         onNodesChange={onNodesChange}
       >
-        <Controls position="top-left" />
+        <Controls position="top-left" className="bg-primary" />
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
       </ReactFlow>
     </main>
