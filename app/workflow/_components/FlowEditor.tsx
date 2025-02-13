@@ -1,5 +1,7 @@
 "use client";
 
+import { CreateFlowNode } from "@/lib/workflow/createFlowNode";
+import { TaskType } from "@/types/task";
 import { Workflow } from "@prisma/client";
 import {
   Background,
@@ -11,9 +13,16 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import React from "react";
+import NodeComponent from "./nodes/NodeComponent";
+
+const nodeTypes = {
+  FlowScrapeNode: NodeComponent,
+};
 
 function FlowEditor({ workflow }: { workflow: Workflow }) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([
+    CreateFlowNode(TaskType.LAUNCH_BROWSER),
+  ]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   return (
     <main className="h-full w-full">
@@ -22,6 +31,7 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
         edges={edges}
         onEdgesChange={onEdgesChange}
         onNodesChange={onNodesChange}
+        nodeTypes={nodeTypes}
       >
         <Controls position="top-left" className="bg-primary" />
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
