@@ -35,6 +35,8 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
         onNodesChange={onNodesChange}
         nodeTypes={nodeTypes}
         fitViewOptions={fitViewOptions}
+        minZoom={0.01}
+        // maxZoom={Infinity}
         fitView
       >
         <Controls
