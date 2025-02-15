@@ -15,7 +15,7 @@ const NodeComponent = memo((props: NodeProps) => {
       <NodeInputs>
         {task.inputs.map((input) => (
           // eslint-disable-next-line react/jsx-key
-          <NodeInput input={input} />
+          <NodeInput key={input.name} input={input} />
         ))}
       </NodeInputs>
     </NodeCard>
