@@ -36,6 +36,7 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
         nodeTypes={nodeTypes}
         fitViewOptions={fitViewOptions}
         minZoom={0.01}
+        // minZoom={Infinity}
         // maxZoom={Infinity}
         fitView
       >
