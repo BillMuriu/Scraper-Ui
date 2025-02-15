@@ -22,7 +22,7 @@ const NodeComponent = memo((props: NodeProps) => {
       <NodeOutputs>
         {task.outputs.map((output) => (
           // eslint-disable-next-line react/jsx-key
-          <NodeOutput key={output.name} output={output} nodeId={props.id} />
+          <NodeOutput key={output.name} output={output} />
         ))}
       </NodeOutputs>
     </NodeCard>
