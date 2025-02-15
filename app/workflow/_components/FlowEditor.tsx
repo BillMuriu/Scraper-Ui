@@ -19,9 +19,14 @@ import "@xyflow/react/dist/style.css";
 import React, { useCallback, useEffect } from "react";
 import NodeComponent from "./nodes/NodeComponent";
 import { AppNode } from "@/types/appNode";
+import DeletableEdge from "./edges/DeletableEdge";
 
 const nodeTypes = {
   FlowScrapeNode: NodeComponent,
+};
+
+const edgeTypes = {
+  default: DeletableEdge,
 };
 
 const fitViewOptions = { padding: 2 };
@@ -74,6 +79,7 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
         // onEdgesChange={onEdgesChange} - Save Mutation
         onNodesChange={onNodesChange}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitViewOptions={fitViewOptions}
         minZoom={0.01}
         onDragOver={onDragOver}
