@@ -23,6 +23,7 @@ function TaskMenu() {
             Data Extraction
           </AccordionTrigger>
           <AccordionContent className="flex flex-col gap-1">
+            <TaskMenuBtn taskType={TaskType.LAUNCH_BROWSER} />
             <TaskMenuBtn taskType={TaskType.PAGE_TO_HTML} />
             <TaskMenuBtn taskType={TaskType.EXTRACT_TEXT_FROM_ELEMENT} />
           </AccordionContent>

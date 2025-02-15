@@ -21,6 +21,7 @@ import React, { useCallback, useEffect } from "react";
 import NodeComponent from "./nodes/NodeComponent";
 import { AppNode } from "@/types/appNode";
 import DeletableEdge from "./edges/DeletableEdge";
+import { TaskRegistry } from "@/lib/workflow/task/registry";
 
 const nodeTypes = {
   FlowScrapeNode: NodeComponent,
@@ -35,7 +36,7 @@ const fitViewOptions = { padding: 2 };
 function FlowEditor({ workflow }: { workflow: Workflow }) {
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-  const { setViewport, screenToFlowPosition } = useReactFlow();
+  const { setViewport, screenToFlowPosition, updateNodeData } = useReactFlow();
 
   useEffect(() => {
     try {
@@ -68,23 +69,75 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
     setNodes((nds) => nds.concat(newNode));
   }, []);
 
-  const onConnect = useCallback((connection: Connection) => {
-    setEdges((eds) =>
-      addEdge(
-        {
-          ...connection,
-          animated: true,
-          markerStart: "arrow", // Add marker at the start
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 25, // Increase width
-            height: 25, // Increase height
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      setEdges((eds) =>
+        addEdge(
+          {
+            ...connection,
+            animated: true,
+            markerStart: "arrow", // Add marker at the start
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              width: 25, // Increase width
+              height: 25, // Increase height
+            },
           },
+          eds
+        )
+      );
+
+      //Remove input value if is present on connection
+      if (!connection.targetHandle) return;
+
+      const node = nodes.find((nd) => nd.id === connection.target);
+      if (!node) return;
+
+      const nodeInputs = node.data.inputs;
+
+      updateNodeData(node.id, {
+        inputs: {
+          ...nodeInputs,
+          [connection.targetHandle]: "",
         },
-        eds
-      )
-    );
-  }, []);
+      });
+      console.log("@UPDATED NODE", node.id);
+    },
+    [setEdges, updateNodeData, nodes]
+  );
+
+  const isValidConnection = useCallback(
+    (connection: Edge | Connection) => {
+      if (connection.source === connection.target) {
+        return false;
+      }
+
+      const source = nodes.find((node) => node.id === connection.source);
+      const target = nodes.find((node) => node.id === connection.target);
+
+      if (!source || !target) {
+        console.error("Invalid Connection: Source or Target node founde");
+        return false;
+      }
+
+      const sourceTask = TaskRegistry[source.data.type];
+      const targetTask = TaskRegistry[target.data.type];
+
+      const output = sourceTask.outputs.find(
+        (o) => o.name === connection.sourceHandle
+      );
+      const input = targetTask.inputs.find(
+        (o) => o.name === connection.targetHandle
+      );
+
+      if (input?.type !== output?.type) {
+        console.error("Invalid connection: type mismatch");
+        return false;
+      }
+      return true;
+    },
+    [nodes]
+  );
   return (
     <main className="h-full w-full">
       <ReactFlow
@@ -100,6 +153,7 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
         onDragOver={onDragOver}
         onDrop={onDrop}
         onConnect={onConnect}
+        isValidConnection={isValidConnection}
       >
         <Controls
           position="top-left"
