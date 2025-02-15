@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
+import SaveBtn from "./SaveBtn";
 
 interface Props {
   title: string;
   subtitle: string;
+  workflowId: string;
 }
 
-function Topbar({ title, subtitle }: Props) {
+function Topbar({ title, subtitle, workflowId }: Props) {
   const router = useRouter();
   return (
     <header className="flex p-2 border-p-2 border-separate justify-between w-full h-[60px] sticky top-0 bg-background z-10">
@@ -29,6 +31,9 @@ function Topbar({ title, subtitle }: Props) {
               {subtitle}
             </p>
           )}
+        </div>
+        <div className="flex gap-1 flex-1 justify-end">
+          <SaveBtn workflowId={workflowId} />
         </div>
       </div>
     </header>

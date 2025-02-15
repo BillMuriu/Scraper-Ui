@@ -32,6 +32,7 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
         nodes={nodes}
         edges={edges}
         onEdgesChange={onEdgesChange}
+        // onEdgesChange={onEdgesChange} - Save Mutation
         onNodesChange={onNodesChange}
         nodeTypes={nodeTypes}
         fitViewOptions={fitViewOptions}
