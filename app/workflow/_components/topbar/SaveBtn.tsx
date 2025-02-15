@@ -28,7 +28,7 @@ function SaveBtn({ workflowId }: { workflowId: string }) {
       onClick={() => {
         const workflowDefinition = JSON.stringify(toObject());
         // alert(workflowDefinition);
-        toast.loading("Saving workflow...", { id: "save-workflow" });
+        toast.loading("Ndio nasave workflow...", { id: "save-workflow" });
         saveMutation.mutate({ id: workflowId, definition: workflowDefinition });
       }}
     >
