@@ -10,6 +10,7 @@ import {
   Connection,
   Controls,
   Edge,
+  MarkerType,
   ReactFlow,
   useEdgesState,
   useNodesState,
@@ -68,7 +69,21 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
   }, []);
 
   const onConnect = useCallback((connection: Connection) => {
-    setEdges((eds) => addEdge({ ...connection, animated: true }, eds));
+    setEdges((eds) =>
+      addEdge(
+        {
+          ...connection,
+          animated: true,
+          markerStart: "arrow", // Add marker at the start
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 25, // Increase width
+            height: 25, // Increase height
+          },
+        },
+        eds
+      )
+    );
   }, []);
   return (
     <main className="h-full w-full">

@@ -22,7 +22,7 @@ export default function DeletableEdge(props: EdgeProps) {
         markerEnd={props.markerEnd}
         style={props.style}
       />
-      <EdgeLabelRenderer>
+      {/* <EdgeLabelRenderer>
         <div
           style={{
             position: "absolute",
@@ -43,7 +43,7 @@ export default function DeletableEdge(props: EdgeProps) {
             X
           </Button>
         </div>
-      </EdgeLabelRenderer>
+      </EdgeLabelRenderer> */}
     </>
   );
 }
