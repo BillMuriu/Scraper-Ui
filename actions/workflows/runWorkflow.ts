@@ -3,8 +3,14 @@
 import prisma from "@/lib/prisma";
 import { FlowToExecutionPlan } from "@/lib/workflow/executionPlan";
 import { TaskRegistry } from "@/lib/workflow/task/registry";
-import { WorkflowExecutionPlan } from "@/types/workflow";
+import {
+  ExecutionPhaseStatus,
+  WorkflowExectutionTrigger,
+  WorkflowExecutionPlan,
+  WorkflowExecutionStatus,
+} from "@/types/workflow";
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { number } from "zod";
 
 export async function RunWorkflow(form: {
@@ -58,15 +64,15 @@ export async function RunWorkflow(form: {
     data: {
       workflowId,
       userId,
-      status: "PENDING",
+      status: WorkflowExecutionStatus.PENDING,
       startedAt: new Date(),
-      trigger: "manual",
+      trigger: WorkflowExectutionTrigger.MANUAL,
       phases: {
         create: executionPlan.flatMap((phase) => {
           return phase.nodes.flatMap((node) => {
             return {
               userId,
-              status: "CREATED",
+              status: ExecutionPhaseStatus.CREATED,
               number: phase.phase,
               node: JSON.stringify(node),
               name: TaskRegistry[node.data.type].label,
@@ -84,4 +90,6 @@ export async function RunWorkflow(form: {
   if (!execution) {
     throw new Error("Workflow execution not created");
   }
+
+  redirect(`/workflow/runs/${workflowId}/${execution.id}`);
 }
