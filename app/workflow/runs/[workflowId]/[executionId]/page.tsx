@@ -1,3 +1,4 @@
+import { GetWorkflowExecutionWithPhases } from "@/actions/workflows/getWorkflowExecutionWithPhases";
 import Topbar from "@/app/workflow/_components/topbar/Topbar";
 import { waitFor } from "@/lib/helper/waitFor";
 import { Loader2Icon } from "lucide-react";
@@ -22,7 +23,7 @@ export default function ExecutionViewerPage({
       <section className="flex h-full overflow-auto">
         <Suspense
           fallback={
-            <div>
+            <div className="flex w-full items-center justify-center">
               <Loader2Icon className="h-10 w-10 animate-spin stroke-primary" />
             </div>
           }
@@ -39,6 +40,11 @@ async function ExecutionViewerWrapper({
 }: {
   executionId: string;
 }) {
-  await waitFor(5000);
-  return <div>Wrapper</div>;
+  // await waitFor(2000);
+  const workflowExecution = await GetWorkflowExecutionWithPhases(executionId);
+
+  if (!workflowExecution) {
+    return <div>Not Found</div>;
+  }
+  return <pre>{JSON.stringify(workflowExecution, null, 4)}</pre>;
 }
