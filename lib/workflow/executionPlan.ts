@@ -59,6 +59,7 @@ export function FlowToExecutionPlan(
       nextPhase.nodes.push(currentNode);
       planned.add(currentNode.id);
     }
+    executionPlan.push(nextPhase);
   }
   return { executionPlan };
 }
