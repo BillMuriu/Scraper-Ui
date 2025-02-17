@@ -22,7 +22,21 @@ model Workflow {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  executions WorkflowExecution[]
   // Users cannot have two workflows with the same name
 
   @@unique([name, userId])
+}
+
+model WorkflowExecution {
+  id String
+  workflowId String
+  userId String
+  trigger String
+  status String
+  createdAt DateTime @default(now())
+  startedAt DateTime?
+  completedAt DateTime?
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: cascade)
 }
