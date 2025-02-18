@@ -91,5 +91,7 @@ export async function RunWorkflow(form: {
     throw new Error("Workflow execution not created");
   }
 
+  // ExecuteWorkflow(execution.id)
+
   redirect(`/workflow/runs/${workflowId}/${execution.id}`);
 }
