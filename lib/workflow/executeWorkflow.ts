@@ -38,13 +38,21 @@ export async function ExecuteWorkflow(executionId: string) {
   //TODO: initialize phase statuses
   await initializePhaseStatuses(execution);
 
+  let creditsConsumed = 0;
   let executionFailed = false;
 
   for (const phase of execution.phases) {
     //TODO: execute phase
+    //TODO: consume credits
   }
 
-  //TODO: finalize execution
+  //finalize execution
+  await finalizeWorkflowExecution(
+    executionId,
+    execution.workflowId,
+    executionFailed,
+    creditsConsumed
+  );
   //TODO: clean up environment
 
   revalidatePath("/workflows/runs");
@@ -95,6 +103,35 @@ async function initializePhaseStatuses(execution: any) {
     },
     data: {
       status: ExecutionPhaseStatus.PENDING,
+    },
+  });
+}
+
+async function finalizeWorkflowExecution(
+  executionId: string,
+  workflowId: string,
+  executionFailed: boolean,
+  creditsConsumed: number
+) {
+  const finalStatus = executionFailed
+    ? WorkflowExecutionStatus.FAILED
+    : WorkflowExecutionStatus.COMPLETED;
+
+  await prisma.workflowExecution.update({
+    where: { id: executionId },
+    data: {
+      status: finalStatus,
+      completedAt: new Date(),
+      creditsConsumed,
+    },
+  });
+
+  await prisma.workflow.update({
+    where: {
+      id: workflowId,
+    },
+    data: {
+      lastRunStatus: finalStatus,
     },
   });
 }
