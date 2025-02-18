@@ -12,6 +12,8 @@ import { waitFor } from "../helper/waitFor";
 import { ExecutionPhase } from "@prisma/client";
 import { AppNode } from "@/types/appNode";
 import { TaskRegistry } from "./task/registry";
+import { ExecutorRegistry } from "./executor/registry";
+import { Environment } from "@/types/executor";
 
 export async function ExecuteWorkflow(executionId: string) {
   const execution = await prisma.workflowExecution.findUnique({
@@ -36,7 +38,7 @@ export async function ExecuteWorkflow(executionId: string) {
   //     },
   //   },
   // };
-  const environment = { phases: {} };
+  const environment: Environment = { phases: {} };
 
   //TODO: initialize workflow execution
   await initializeWorkflowExecution(executionId, execution.workflowId);
@@ -48,7 +50,7 @@ export async function ExecuteWorkflow(executionId: string) {
   let executionFailed = false;
 
   for (const phase of execution.phases) {
-    const phaseExecution = await executeWorkflowPhase(phase);
+    const phaseExecution = await executeWorkflowPhase(phase, environment);
     if (!phaseExecution.success) {
       executionFailed = true;
       break;
@@ -152,7 +154,10 @@ async function finalizeWorkflowExecution(
     });
 }
 
-async function executeWorkflowPhase(phase: ExecutionPhase) {
+async function executeWorkflowPhase(
+  phase: ExecutionPhase,
+  environment: Environment
+) {
   const startedAt = new Date();
   const node = JSON.parse(phase.node) as AppNode;
 
@@ -172,7 +177,7 @@ async function executeWorkflowPhase(phase: ExecutionPhase) {
 
   await waitFor(2000);
 
-  const success = Math.random() < 0.7;
+  const success = await executePhase(phase, node, environment);
   await finalizePhase(phase.id, success);
   return { success };
 }
@@ -191,4 +196,18 @@ async function finalizePhase(phaseId: string, success: boolean) {
       completedAt: new Date(),
     },
   });
+}
+
+async function executePhase(
+  phase: ExecutionPhase,
+  node: AppNode,
+  environment: Environment
+): Promise<boolean> {
+  const runFn = ExecutorRegistry[node.data.type];
+
+  if (!runFn) {
+    return false;
+  }
+
+  return await runFn(environment);
 }
