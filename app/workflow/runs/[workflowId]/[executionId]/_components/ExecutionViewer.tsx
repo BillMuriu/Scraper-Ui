@@ -136,6 +136,7 @@ export default function ExecutionViewer({
               >
                 <div className="flex items-center gap-2">
                   <Badge variant={"outline"}>{index + 1}</Badge>
+                  {/* <Badge variant={"outline"}>{phase.node}</Badge> */}
                   <p className="font-semibold">{phase.name}</p>
                 </div>
                 <p className="text-xs text-muted-foreground">{phase.status}</p>

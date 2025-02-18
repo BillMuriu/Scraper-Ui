@@ -8,6 +8,7 @@ export const LaunchBrowserTask = {
     <GlobeIcon className="stroke-pink-400" {...props} />
   ),
   isEntryPoint: true,
+  credits: 3,
   inputs: [
     {
       name: "Website url",
