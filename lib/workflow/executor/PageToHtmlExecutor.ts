@@ -5,8 +5,9 @@ export async function PageToHtmlExecutor(
   environment: ExecutionEnvironment<typeof PageToHtmlTask>
 ): Promise<boolean> {
   try {
-    const websiteUrl = environment.getInput("Web Page");
-    console.log("@@WEbSITE URL", websiteUrl);
+    const html = await environment.getPage()!.content();
+    environment.setOutput("Html", html);
+    console.log("@PAGE HTML", html);
     return true;
   } catch (error) {
     console.error(error);
