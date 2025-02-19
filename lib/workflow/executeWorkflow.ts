@@ -24,19 +24,6 @@ export async function ExecuteWorkflow(executionId: string) {
     throw new Error("Execution not found");
   }
 
-  //setup execution environment example
-  // const environment = {
-  //   phases: {
-  //     LaunchBrowserTask: {
-  //       inputs: {
-  //         websiteUrl: "google.com",
-  //       },
-  //       outputs: {
-  //         browser: "PuppetterInstance",
-  //       },
-  //     },
-  //   },
-  // };
   const environment: Environment = { phases: {} };
 
   //TODO: initialize workflow execution
@@ -166,6 +153,7 @@ async function executeWorkflowPhase(
     data: {
       status: ExecutionPhaseStatus.RUNNING,
       startedAt,
+      inputs: JSON.stringify(environment.phases[node.id].inputs),
     },
   });
 

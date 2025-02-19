@@ -1,11 +1,11 @@
 // The Lesson at the 7th hour is very important
 import { ExecutionEnvironment } from "@/types/executor";
-import { LaunchBrowserTask } from "../task/LaunchBrowser";
+import { PageToHtmlTask } from "../task/PageToHtml";
 export async function PageToHtmlExecutor(
-  environment: ExecutionEnvironment<typeof LaunchBrowserTask>
+  environment: ExecutionEnvironment<typeof PageToHtmlTask>
 ): Promise<boolean> {
   try {
-    const websiteUrl = environment.getInput("Website url");
+    const websiteUrl = environment.getInput("Web Page");
     console.log("@@WEbSITE URL", websiteUrl);
     return true;
   } catch (error) {
