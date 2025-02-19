@@ -1,7 +1,6 @@
 import "server-only";
 import prisma from "../prisma";
 import { revalidatePath } from "next/cache";
-import { LaunchBrowserTask } from "./task/LaunchBrowser";
 import {
   ExecutionPhaseStatus,
   WorkflowExecutionStatus,
@@ -13,7 +12,7 @@ import { ExecutionPhase } from "@prisma/client";
 import { AppNode } from "@/types/appNode";
 import { TaskRegistry } from "./task/registry";
 import { ExecutorRegistry } from "./executor/registry";
-import { Environment } from "@/types/executor";
+import { Environment, ExecutionEnvironment } from "@/types/executor";
 
 export async function ExecuteWorkflow(executionId: string) {
   const execution = await prisma.workflowExecution.findUnique({
@@ -160,6 +159,7 @@ async function executeWorkflowPhase(
 ) {
   const startedAt = new Date();
   const node = JSON.parse(phase.node) as AppNode;
+  setupEnvironmentForPhase(node, environment);
 
   await prisma.executionPhase.update({
     where: { id: phase.id },
@@ -180,6 +180,19 @@ async function executeWorkflowPhase(
   const success = await executePhase(phase, node, environment);
   await finalizePhase(phase.id, success);
   return { success };
+}
+
+function setupEnvironmentForPhase(node: AppNode, environment: Environment) {
+  environment.phases[node.id] = { inputs: {}, outputs: {} };
+  const inputs = TaskRegistry[node.data.type].inputs;
+
+  for (const input of inputs) {
+    const inputValue = node.data.inputs[input.name];
+    if (inputValue) {
+      environment.phases[node.id].inputs[input.name] = inputValue;
+      continue;
+    } //getinput value from outputs in the environment
+  }
 }
 
 async function finalizePhase(phaseId: string, success: boolean) {
@@ -209,5 +222,14 @@ async function executePhase(
     return false;
   }
 
-  return await runFn(environment);
+  const executionEnvironment: ExecutionEnvironment<any> =
+    createExecutionEnvironment(node, environment);
+
+  return await runFn(executionEnvironment);
+}
+
+function createExecutionEnvironment(node: AppNode, environment: Environment) {
+  return {
+    getInput: (name: string) => environment.phases[node.id]?.inputs[name],
+  };
 }
