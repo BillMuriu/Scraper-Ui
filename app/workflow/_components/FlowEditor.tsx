@@ -157,10 +157,10 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
         nodes={nodes}
         edges={edges}
         onEdgesChange={onEdgesChange}
-        // onEdgesChange={onEdgesChange} - Save Mutation
         onNodesChange={onNodesChange}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        draggable={false}
         fitViewOptions={fitViewOptions}
         minZoom={0.01}
         onDragOver={onDragOver}

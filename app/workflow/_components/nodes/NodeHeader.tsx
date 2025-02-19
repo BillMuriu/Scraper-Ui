@@ -25,9 +25,9 @@ function NodeHeader({ taskType }: { taskType: TaskType }) {
           <Button
             variant={"ghost"}
             size={"icon"}
-            className="drag-handle cursor-grab"
+            className="cursor-grab drag-handle"
           >
-            <GripVerticalIcon size={20} />
+            <GripVerticalIcon size={40} />
           </Button>
         </div>
       </div>
