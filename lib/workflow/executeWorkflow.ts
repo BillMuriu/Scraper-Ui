@@ -176,8 +176,6 @@ async function executeWorkflowPhase(
     `executing phase ${phase.name} with ${creditsRequired} credits required`
   );
 
-  await waitFor(2000);
-
   const success = await executePhase(phase, node, environment, logCollector);
   const outputs = environment.phases[node.id].outputs;
   await finalizePhase(phase.id, success, outputs, logCollector);
