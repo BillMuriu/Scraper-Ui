@@ -7,6 +7,7 @@ import StringParam from "./param/StringParam";
 import { useReactFlow } from "@xyflow/react";
 import { AppNode } from "@/types/appNode";
 import BrowserInstanceParam from "./param/BrowserInstanceParam";
+import ObjectParam from "./param/ObjectParam"; // Import the ObjectParam
 
 function NodeParamField({
   param,
@@ -20,10 +21,11 @@ function NodeParamField({
   const { updateNodeData, getNode } = useReactFlow();
   const node = getNode(nodeId) as AppNode;
   const value = node?.data.inputs?.[param.name];
-  // console.log("@VALUE", value);
 
+  // updateNodeParamValue with object support
   const updateNodeParamValue = useCallback(
-    (newValue: string) => {
+    (newValue: any) => {
+      // Accept any type since it could be a string or object
       updateNodeData(nodeId, {
         inputs: {
           ...node?.data.inputs, // ✅ Fixed
@@ -50,6 +52,15 @@ function NodeParamField({
           param={param}
           value={""}
           updateNodeParamValue={updateNodeParamValue}
+        />
+      );
+    case TaskParamType.ARRAY:
+      return (
+        <ObjectParam
+          param={param}
+          value={value}
+          updateNodeParamValue={updateNodeParamValue}
+          disabled={disabled}
         />
       );
     default:
