@@ -5,6 +5,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ParamProps } from "@/types/appNode";
 import React, { useEffect, useId, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import DialogMultipleInput from "./inputs/DialogMultipleInput";
 
 function ObjectParam({
   param,
@@ -72,6 +82,22 @@ function ObjectParam({
       {param.helperText && (
         <p className="text-muted-foreground px-2">{param.helperText}</p>
       )}
+      <Dialog>
+        <DialogTrigger>
+          <Button variant={"ghost"} className="bg-secondary">
+            Add more
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Inputs</DialogTitle>
+            <DialogDescription>Description</DialogDescription>
+            <div>
+              <DialogMultipleInput />
+            </div>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

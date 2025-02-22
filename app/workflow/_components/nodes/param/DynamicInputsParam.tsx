@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useId, useState } from "react";
-import { TaskParam } from "@/types/task";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
