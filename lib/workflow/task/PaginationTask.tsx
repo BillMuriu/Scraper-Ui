@@ -20,7 +20,8 @@ export const PaginationTask = {
       name: "Base URL",
       type: TaskParamType.STRING,
       required: true,
-      helperText: "The base URL for pagination (e.g., https://example.com/posts)",
+      helperText:
+        "The base URL for pagination (e.g., https://example.com/posts)",
     },
     {
       name: "Pagination Sign",

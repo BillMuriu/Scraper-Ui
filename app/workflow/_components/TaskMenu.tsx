@@ -37,6 +37,7 @@ function TaskMenu() {
             <TaskMenuBtn taskType={TaskType.EXTRACT_TEXT_FROM_ELEMENT} />
             <TaskMenuBtn taskType={TaskType.EXTRACT_MULTIPLE_ELEMENTS} />
             <TaskMenuBtn taskType={TaskType.PAGINATION} />
+            <TaskMenuBtn taskType={TaskType.CSV_EXPORT} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

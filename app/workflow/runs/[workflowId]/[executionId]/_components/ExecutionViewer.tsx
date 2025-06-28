@@ -22,6 +22,7 @@ import {
   WorkflowIcon,
 } from "lucide-react";
 import { useState } from "react";
+import { DownloadLinksDisplay } from "./DownloadLinksDisplay";
 
 type ExecutionData = Awaited<ReturnType<typeof GetWorkflowExecutionWithPhases>>;
 
@@ -145,8 +146,17 @@ export default function ExecutionViewer({
           </div>
         </div>
       </aside>
-      <div className="flex w-full h-full">
-        <pre>{JSON.stringify(phaseDetails.data, null, 4)}</pre>
+      <div className="flex w-full h-full flex-col">
+        <div className="p-4">
+          <pre>{JSON.stringify(phaseDetails.data, null, 4)}</pre>
+        </div>
+
+        {/* Display download links for CSV exports */}
+        {phaseDetails.data?.outputs && (
+          <div className="p-4">
+            <DownloadLinksDisplay outputs={phaseDetails.data.outputs} />
+          </div>
+        )}
       </div>
     </div>
   );

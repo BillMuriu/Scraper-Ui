@@ -5,6 +5,7 @@ import { LaunchBrowserTask } from "./LaunchBrowser";
 import { NavigateUrlTask } from "./NavigateUrlTask";
 import { PageToHtmlTask } from "./PageToHtml";
 import { PaginationTask } from "./PaginationTask";
+import { CSVExportTask } from "./CSVExportTask";
 
 export const TaskRegistry = {
   LAUNCH_BROWSER: LaunchBrowserTask,
@@ -14,4 +15,5 @@ export const TaskRegistry = {
   FILL_INPUT: FillInputTask,
   NAVIGATE_URL: NavigateUrlTask,
   PAGINATION: PaginationTask,
+  CSV_EXPORT: CSVExportTask,
 };

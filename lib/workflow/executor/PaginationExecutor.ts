@@ -9,7 +9,7 @@ interface PaginationResult {
   results: Array<{
     page: number;
     url: string;
-    status: 'success' | 'failed';
+    status: "success" | "failed";
     results: string[];
     error?: string;
   }>;
@@ -27,7 +27,14 @@ export async function PaginationExecutor(
     const attributeToExtract = environment.getInput("Attribute to Extract");
 
     // Validation
-    if (!baseUrl || !paginationSign || !startPageStr || !endPageStr || !elementSelector || !attributeToExtract) {
+    if (
+      !baseUrl ||
+      !paginationSign ||
+      !startPageStr ||
+      !endPageStr ||
+      !elementSelector ||
+      !attributeToExtract
+    ) {
       environment.log.error("Missing required inputs");
       return false;
     }
@@ -60,85 +67,96 @@ export async function PaginationExecutor(
       totalPages: endPage - startPage + 1,
       successfulPages: 0,
       failedPages: 0,
-      results: []
+      results: [],
     };
 
-    environment.log.info(`Starting pagination scraping from page ${startPage} to ${endPage}`);
+    environment.log.info(
+      `Starting pagination scraping from page ${startPage} to ${endPage}`
+    );
 
     // Loop through pages
     for (let currentPage = startPage; currentPage <= endPage; currentPage++) {
       const fullUrl = `${baseUrl}${paginationSign}${currentPage}`;
-      
+
       try {
         environment.log.info(`Visiting page ${currentPage}: ${fullUrl}`);
-        
+
         // Navigate to the page
-        await page.goto(fullUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-        
+        await page.goto(fullUrl, { waitUntil: "networkidle2", timeout: 30000 });
+
         // Wait a bit to ensure page is loaded
         await waitFor(500);
-        
+
         // Wait for the selector to be available
         try {
           await page.waitForSelector(elementSelector, { timeout: 10000 });
         } catch (selectorError) {
-          environment.log.info(`Selector "${elementSelector}" not found on page ${currentPage}`);
+          environment.log.info(
+            `Selector "${elementSelector}" not found on page ${currentPage}`
+          );
           paginationResult.results.push({
             page: currentPage,
             url: fullUrl,
-            status: 'failed',
+            status: "failed",
             results: [],
-            error: `Selector not found: ${elementSelector}`
+            error: `Selector not found: ${elementSelector}`,
           });
           paginationResult.failedPages++;
           continue;
         }
 
         // Extract elements
-        const extractedData = await page.evaluate((selector, attribute) => {
-          const elements = document.querySelectorAll(selector);
-          const results: string[] = [];
-          
-          elements.forEach(element => {
-            let value = '';
-            if (attribute === 'textContent') {
-              value = element.textContent?.trim() || '';
-            } else if (attribute === 'innerHTML') {
-              value = element.innerHTML;
-            } else {
-              value = element.getAttribute(attribute) || '';
-            }
-            
-            if (value) {
-              results.push(value);
-            }
-          });
-          
-          return results;
-        }, elementSelector, attributeToExtract);
+        const extractedData = await page.evaluate(
+          (selector, attribute) => {
+            const elements = document.querySelectorAll(selector);
+            const results: string[] = [];
+
+            elements.forEach((element) => {
+              let value = "";
+              if (attribute === "textContent") {
+                value = element.textContent?.trim() || "";
+              } else if (attribute === "innerHTML") {
+                value = element.innerHTML;
+              } else {
+                value = element.getAttribute(attribute) || "";
+              }
+
+              if (value) {
+                results.push(value);
+              }
+            });
+
+            return results;
+          },
+          elementSelector,
+          attributeToExtract
+        );
 
         paginationResult.results.push({
           page: currentPage,
           url: fullUrl,
-          status: 'success',
+          status: "success",
           results: extractedData,
-          error: undefined
+          error: undefined,
         });
 
         paginationResult.successfulPages++;
-        environment.log.info(`Page ${currentPage}: Extracted ${extractedData.length} elements`);
+        environment.log.info(
+          `Page ${currentPage}: Extracted ${extractedData.length} elements`
+        );
 
         // Small delay between pages to be respectful
         await waitFor(200);
-
       } catch (error: any) {
-        environment.log.error(`Failed to process page ${currentPage}: ${error.message}`);
+        environment.log.error(
+          `Failed to process page ${currentPage}: ${error.message}`
+        );
         paginationResult.results.push({
           page: currentPage,
           url: fullUrl,
-          status: 'failed',
+          status: "failed",
           results: [],
-          error: error.message
+          error: error.message,
         });
         paginationResult.failedPages++;
       }
@@ -153,7 +171,6 @@ export async function PaginationExecutor(
     );
 
     return paginationResult.successfulPages > 0;
-
   } catch (error: any) {
     environment.log.error(`Pagination executor error: ${error.message}`);
     return false;

@@ -6,6 +6,7 @@ export enum TaskType {
   FILL_INPUT = "FILL_INPUT",
   NAVIGATE_URL = "NAVIGATE_URL",
   PAGINATION = "PAGINATION",
+  CSV_EXPORT = "CSV_EXPORT",
 }
 
 export enum TaskParamType {

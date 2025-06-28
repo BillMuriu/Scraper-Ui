@@ -11,7 +11,6 @@ import {
   WorkflowExecutionStatus,
 } from "@/types/workflow";
 import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import { number } from "zod";
 
 export async function RunWorkflow(form: {
@@ -95,5 +94,6 @@ export async function RunWorkflow(form: {
 
   ExecuteWorkflow(execution.id);
 
-  redirect(`/workflow/runs/${workflowId}/${execution.id}`);
+  // Return the execution ID instead of redirecting
+  return execution.id;
 }

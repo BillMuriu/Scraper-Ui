@@ -8,6 +8,7 @@ import { ExtractMultipleElementsExecutor } from "./ExtractMultipleElementsExecut
 import { FillInputExecutor } from "./FillInputExecutor";
 import { NavigateUrlExecutor } from "./NavigateUrlExecutor";
 import { PaginationExecutor } from "./PaginationExecutor";
+import { CSVExportExecutor } from "./CSVExportExecutor";
 
 type ExecutorFn<T extends WorkflowTask> = (
   environment: ExecutionEnvironment<T>
@@ -25,4 +26,5 @@ export const ExecutorRegistry: RegistryType = {
   FILL_INPUT: FillInputExecutor,
   NAVIGATE_URL: NavigateUrlExecutor,
   PAGINATION: PaginationExecutor,
+  CSV_EXPORT: CSVExportExecutor,
 };
