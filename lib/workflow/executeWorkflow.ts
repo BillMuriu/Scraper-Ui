@@ -61,7 +61,8 @@ export async function ExecuteWorkflow(executionId: string) {
     creditsConsumed
   );
 
-  await cleanupEnvironment(environment);
+  // Comment out automatic cleanup - now handled by Close Browser node
+  // await cleanupEnvironment(environment);
 
   revalidatePath("/workflows/runs");
 }
@@ -288,10 +289,11 @@ function createExecutionEnvironment(
   };
 }
 
-async function cleanupEnvironment(environment: Environment) {
-  if (environment.browser) {
-    await environment.browser
-      .close()
-      .catch((err) => console.error("cannot close browser, reason:", err));
-  }
-}
+// Commented out - cleanup now handled by Close Browser node
+// async function cleanupEnvironment(environment: Environment) {
+//   if (environment.browser) {
+//     await environment.browser
+//       .close()
+//       .catch((err) => console.error("cannot close browser, reason:", err));
+//   }
+// }
