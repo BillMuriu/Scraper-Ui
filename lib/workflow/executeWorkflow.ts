@@ -246,15 +246,18 @@ async function finalizePhase(
   });
 }
 
+// The executePhase is a very very important phase in the workflow of the whole project
 async function executePhase(
   phase: ExecutionPhase,
   node: AppNode,
   environment: Environment,
   logCollector: LogCollector
 ): Promise<boolean> {
+  // This function is the bread and butter of my application
   const runFn = ExecutorRegistry[node.data.type];
 
   if (!runFn) {
+    logCollector.error(`not found executor for ${node.data.type}`);
     return false;
   }
 

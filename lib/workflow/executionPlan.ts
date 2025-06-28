@@ -20,7 +20,7 @@ type FlowToExecutionPlanType = {
   };
 };
 
-//4 hours and 39 minutes
+//4 hours and 32 to 39 minutes
 export function FlowToExecutionPlan(
   nodes: AppNode[],
   edges: Edge[]
