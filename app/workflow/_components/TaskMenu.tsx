@@ -24,6 +24,7 @@ function TaskMenu() {
           </AccordionTrigger>
           <AccordionContent className="flex flex-col gap-1">
             <TaskMenuBtn taskType={TaskType.FILL_INPUT} />
+            <TaskMenuBtn taskType={TaskType.NAVIGATE_URL} />
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="extraction">
@@ -35,6 +36,7 @@ function TaskMenu() {
             <TaskMenuBtn taskType={TaskType.PAGE_TO_HTML} />
             <TaskMenuBtn taskType={TaskType.EXTRACT_TEXT_FROM_ELEMENT} />
             <TaskMenuBtn taskType={TaskType.EXTRACT_MULTIPLE_ELEMENTS} />
+            <TaskMenuBtn taskType={TaskType.PAGINATION} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

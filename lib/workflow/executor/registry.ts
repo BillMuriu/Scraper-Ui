@@ -6,6 +6,8 @@ import { WorkflowTask } from "@/types/workflow";
 import { ExtractTextFromElementExecutor } from "./ExtractTextFromElementExecutor";
 import { ExtractMultipleElementsExecutor } from "./ExtractMultipleElementsExecutor";
 import { FillInputExecutor } from "./FillInputExecutor";
+import { NavigateUrlExecutor } from "./NavigateUrlExecutor";
+import { PaginationExecutor } from "./PaginationExecutor";
 
 type ExecutorFn<T extends WorkflowTask> = (
   environment: ExecutionEnvironment<T>
@@ -21,4 +23,6 @@ export const ExecutorRegistry: RegistryType = {
   EXTRACT_TEXT_FROM_ELEMENT: ExtractTextFromElementExecutor,
   EXTRACT_MULTIPLE_ELEMENTS: ExtractMultipleElementsExecutor,
   FILL_INPUT: FillInputExecutor,
+  NAVIGATE_URL: NavigateUrlExecutor,
+  PAGINATION: PaginationExecutor,
 };
