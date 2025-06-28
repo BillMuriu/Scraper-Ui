@@ -22,25 +22,8 @@ export async function ExtractMultipleElementsExecutor(
     console.log("Raw Fields Input:", fieldsRaw);
     environment.log.info(`Raw Fields Input: ${fieldsRaw}`);
 
-    let fields;
-    try {
-      // Ensure it's a proper JSON array
-      const cleanedFieldsRaw = fieldsRaw.trim();
-      const fixedJson = cleanedFieldsRaw.startsWith("[")
-        ? cleanedFieldsRaw
-        : `[${cleanedFieldsRaw}]`;
-
-      // Log the corrected JSON before parsing
-      console.log("Fixed Fields JSON:", fixedJson);
-      environment.log.info(`Fixed Fields JSON: ${fixedJson}`);
-
-      // Parse the corrected JSON
-      fields = JSON.parse(fixedJson);
-    } catch (error) {
-      environment.log.error("Failed to parse Fields JSON");
-      console.error("Parsing error:", error);
-      return false;
-    }
+    // No need for JSON parsing or trimming
+    const fields = fieldsRaw; // fieldsRaw is already an array
 
     if (!Array.isArray(fields) || fields.length === 0) {
       environment.log.error("Fields is not an array or is empty");
@@ -50,7 +33,7 @@ export async function ExtractMultipleElementsExecutor(
     const $ = cheerio.load(html);
     const extractedData = fields.map(({ name, selector }) => ({
       [name]: $(selector)
-        .map((_, el) => $(el).text().trim())
+        .map((_, el) => $(el).text().trim()) // Trim text content if needed
         .get(),
     }));
 
