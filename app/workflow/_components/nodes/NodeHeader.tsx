@@ -6,8 +6,15 @@ import { TaskRegistry } from "@/lib/workflow/task/registry";
 import { TaskType } from "@/types/task";
 import { CoinsIcon, GripVerticalIcon } from "lucide-react";
 import React from "react";
+import NodeExecutionDetailsButton from "./NodeExecutionDetailsButton";
 
-function NodeHeader({ taskType }: { taskType: TaskType }) {
+function NodeHeader({
+  taskType,
+  nodeId,
+}: {
+  taskType: TaskType;
+  nodeId?: string;
+}) {
   const task = TaskRegistry[taskType];
   return (
     <div className="drag-handle cursor-grab flex items-center gap-2 p-2">
@@ -22,6 +29,7 @@ function NodeHeader({ taskType }: { taskType: TaskType }) {
             <CoinsIcon size={16} />
             TODO
           </Badge>
+          {nodeId && <NodeExecutionDetailsButton nodeId={nodeId} />}
           <Button
             variant={"ghost"}
             size={"icon"}

@@ -1,12 +1,12 @@
 "use client";
 
-import { 
-  createContext, 
-  useContext, 
-  useState, 
-  useCallback, 
-  ReactNode, 
-  useEffect 
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+  useEffect,
 } from "react";
 import { NodeExecutionStatus } from "@/types/appNode";
 import { useQuery } from "@tanstack/react-query";
@@ -17,22 +17,35 @@ interface WorkflowExecutionContextType {
   isExecuting: boolean;
   executionId: string | null;
   nodeStatuses: Record<string, NodeExecutionStatus>;
+  nodeToPhaseMapping: Record<string, string>;
   startExecution: (executionId: string) => void;
   stopExecution: () => void;
   getNodeStatus: (nodeId: string) => NodeExecutionStatus;
+  getPhaseIdForNode: (nodeId: string) => string | null;
 }
 
-const WorkflowExecutionContext = createContext<WorkflowExecutionContextType | null>(null);
+const WorkflowExecutionContext =
+  createContext<WorkflowExecutionContextType | null>(null);
 
-export function WorkflowExecutionProvider({ children }: { children: ReactNode }) {
+export function WorkflowExecutionProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionId, setExecutionId] = useState<string | null>(null);
-  const [nodeStatuses, setNodeStatuses] = useState<Record<string, NodeExecutionStatus>>({});
+  const [nodeStatuses, setNodeStatuses] = useState<
+    Record<string, NodeExecutionStatus>
+  >({});
+  const [nodeToPhaseMapping, setNodeToPhaseMapping] = useState<
+    Record<string, string>
+  >({});
 
   // Query for execution status with polling
   const { data: executionData } = useQuery({
     queryKey: ["workflowExecution", executionId],
-    queryFn: () => executionId ? GetWorkflowExecutionWithPhases(executionId) : null,
+    queryFn: () =>
+      executionId ? GetWorkflowExecutionWithPhases(executionId) : null,
     enabled: !!executionId && isExecuting,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
@@ -45,15 +58,19 @@ export function WorkflowExecutionProvider({ children }: { children: ReactNode })
     if (!executionData?.phases) return;
 
     const newNodeStatuses: Record<string, NodeExecutionStatus> = {};
-    
+    const newNodeToPhaseMapping: Record<string, string> = {};
+
     executionData.phases.forEach((phase) => {
       try {
         // Parse the node JSON to get the node ID
         const nodeData = JSON.parse(phase.node);
         const nodeId = nodeData.id;
-        
+
         if (!nodeId) return;
-        
+
+        // Map nodeId to phaseId
+        newNodeToPhaseMapping[nodeId] = phase.id;
+
         switch (phase.status) {
           case "CREATED":
           case "PENDING":
@@ -77,6 +94,7 @@ export function WorkflowExecutionProvider({ children }: { children: ReactNode })
     });
 
     setNodeStatuses(newNodeStatuses);
+    setNodeToPhaseMapping(newNodeToPhaseMapping);
 
     // Stop execution if workflow is complete
     if (executionData.status !== WorkflowExecutionStatus.RUNNING) {
@@ -94,21 +112,36 @@ export function WorkflowExecutionProvider({ children }: { children: ReactNode })
     setIsExecuting(false);
     setExecutionId(null);
     setNodeStatuses({});
+    setNodeToPhaseMapping({});
   }, []);
 
-  const getNodeStatus = useCallback((nodeId: string): NodeExecutionStatus => {
-    return nodeStatuses[nodeId] || NodeExecutionStatus.IDLE;
-  }, [nodeStatuses]);
+  const getNodeStatus = useCallback(
+    (nodeId: string): NodeExecutionStatus => {
+      return nodeStatuses[nodeId] || NodeExecutionStatus.IDLE;
+    },
+    [nodeStatuses]
+  );
+
+  const getPhaseIdForNode = useCallback(
+    (nodeId: string): string | null => {
+      return nodeToPhaseMapping[nodeId] || null;
+    },
+    [nodeToPhaseMapping]
+  );
 
   return (
-    <WorkflowExecutionContext.Provider value={{
-      isExecuting,
-      executionId,
-      nodeStatuses,
-      startExecution,
-      stopExecution,
-      getNodeStatus,
-    }}>
+    <WorkflowExecutionContext.Provider
+      value={{
+        isExecuting,
+        executionId,
+        nodeStatuses,
+        nodeToPhaseMapping,
+        startExecution,
+        stopExecution,
+        getNodeStatus,
+        getPhaseIdForNode,
+      }}
+    >
       {children}
     </WorkflowExecutionContext.Provider>
   );
@@ -117,7 +150,9 @@ export function WorkflowExecutionProvider({ children }: { children: ReactNode })
 export function useWorkflowExecution() {
   const context = useContext(WorkflowExecutionContext);
   if (!context) {
-    throw new Error("useWorkflowExecution must be used within WorkflowExecutionProvider");
+    throw new Error(
+      "useWorkflowExecution must be used within WorkflowExecutionProvider"
+    );
   }
   return context;
 }

@@ -16,7 +16,7 @@ function TaskMenu() {
       <Accordion
         type="multiple"
         className="w-full"
-        defaultValue={["extraction", "interactions"]}
+        defaultValue={["extraction", "interactions", "custom"]}
       >
         <AccordionItem value="interactions">
           <AccordionTrigger className="font-bold">
@@ -39,6 +39,14 @@ function TaskMenu() {
             <TaskMenuBtn taskType={TaskType.EXTRACT_MULTIPLE_ELEMENTS} />
             <TaskMenuBtn taskType={TaskType.PAGINATION} />
             <TaskMenuBtn taskType={TaskType.CSV_EXPORT} />
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="custom">
+          <AccordionTrigger className="font-bold">
+            Custom Logic
+          </AccordionTrigger>
+          <AccordionContent className="flex flex-col gap-1">
+            <TaskMenuBtn taskType={TaskType.CUSTOM_JAVASCRIPT} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

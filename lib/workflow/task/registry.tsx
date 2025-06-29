@@ -7,6 +7,7 @@ import { NavigateUrlTask } from "./NavigateUrlTask";
 import { PageToHtmlTask } from "./PageToHtml";
 import { PaginationTask } from "./PaginationTask";
 import { CSVExportTask } from "./CSVExportTask";
+import { CustomJavaScriptTask } from "./CustomJavaScriptTask";
 
 export const TaskRegistry = {
   LAUNCH_BROWSER: LaunchBrowserTask,
@@ -18,4 +19,5 @@ export const TaskRegistry = {
   NAVIGATE_URL: NavigateUrlTask,
   PAGINATION: PaginationTask,
   CSV_EXPORT: CSVExportTask,
+  CUSTOM_JAVASCRIPT: CustomJavaScriptTask,
 };

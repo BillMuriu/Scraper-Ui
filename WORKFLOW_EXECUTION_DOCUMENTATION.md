@@ -34,6 +34,90 @@ This document explains how the ScrapeFlow workflow execution system works, from 
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
+### Workflow Definition Source
+
+The workflow definition originates from the React Flow editor in the UI and follows this path:
+
+1. **UI Capture**: When a user triggers workflow execution via the Execute button in `ExecuteBtn.tsx`, the current state of the flow editor is captured:
+
+```typescript
+// app/workflow/_components/topbar/ExecuteBtn.tsx
+mutation.mutate({
+  workflowId: workflowId,
+  flowDefinition: JSON.stringify(toObject()),
+});
+```
+
+The `toObject()` method from the `useReactFlow()` hook converts the entire React Flow editor state (nodes and edges) to a JavaScript object, which is then serialized to JSON.
+
+2. **Server Processing**: The workflow definition is sent to the server action in `runWorkflow.ts`:
+
+```typescript
+// actions/workflows/runWorkflow.ts
+const flow = JSON.parse(flowDefinition);
+const result = FlowToExecutionPlan(flow.nodes, flow.edges);
+```
+
+3. **Storage**: The original workflow definition is stored in the database as part of the workflow execution record:
+
+```typescript
+// actions/workflows/runWorkflow.ts
+const execution = await prisma.workflowExecution.create({
+  data: {
+    // ...other fields
+    definition: flowDefinition,
+    // ...other fields
+  },
+});
+```
+
+### Workflow Definition Structure
+
+The workflow definition contains the complete state of the React Flow editor including:
+
+```typescript
+{
+  nodes: [
+    {
+      id: "node_1",
+      type: "appNode",
+      position: { x: 100, y: 200 },
+      data: {
+        type: "LAUNCH_BROWSER",
+        inputs: {
+          websiteUrl: "https://example.com",
+          headless: "true"
+        },
+        outputs: {}
+      }
+    },
+    // ... more nodes
+  ],
+  edges: [
+    {
+      id: "edge_1-2",
+      source: "node_1",
+      sourceHandle: "browser",
+      target: "node_2",
+      targetHandle: "browser"
+    },
+    {
+      id: "edge_2-3",
+      source: "node_2",
+      sourceHandle: "extractedText",
+      target: "node_3",
+      targetHandle: null
+    }
+    // ... more edges
+  ],
+  viewport: {
+    x: 0,
+    y: 0,
+    zoom: 1
+  }
+}
+```
+
 ### File References
 
 - **Entry Point**: [`actions/workflows/runWorkflow.ts`](actions/workflows/runWorkflow.ts)
@@ -68,6 +152,18 @@ graph TD
     M -->|No| I
 ```
 
+### From Flow Definition to Execution Plan
+
+The transformation from a visual workflow to an executable plan involves several steps:
+
+1. **User Interaction**: User builds a workflow in the React Flow editor and clicks "Execute"
+2. **Data Capture**: The complete flow definition is serialized from the editor state
+3. **Execution Planning**: The `FlowToExecutionPlan` function analyzes node dependencies and creates phases
+4. **Database Creation**: Execution and phase records are created in the database
+5. **Execution**: The workflow execution begins processing phases in order
+
+This process ensures that nodes execute in the correct order based on their dependencies, with each phase containing nodes that can execute in parallel.
+
 ---
 
 ## Phase Creation
@@ -76,7 +172,61 @@ graph TD
 
 **File**: [`lib/workflow/executionPlan.ts`](lib/workflow/executionPlan.ts)
 
-The execution plan determines the order in which nodes will execute:
+The execution plan determines the order in which nodes will execute by organizing them into phases.
+
+#### How Execution Plan Generation Works
+
+The `FlowToExecutionPlan` function is responsible for analyzing the workflow's nodes and edges to create a structured execution plan:
+
+```typescript
+export function FlowToExecutionPlan(
+  nodes: AppNode[],
+  edges: Edge[]
+): FlowToExecutionPlanType {
+  // Find the entry point node (e.g., LAUNCH_BROWSER)
+  const entryPoint = nodes.find(
+    (node) => TaskRegistry[node.data.type].isEntryPoint
+  );
+
+  // Validation and error handling...
+
+  // Create the first phase with the entry point
+  const executionPlan: WorkflowExecutionPlan = [
+    {
+      phase: 1,
+      nodes: [entryPoint],
+    },
+  ];
+
+  // Track nodes that have been added to the plan
+  const planned = new Set<string>();
+  planned.add(entryPoint.id);
+
+  // Create subsequent phases based on dependencies
+  for (
+    let phase = 2;
+    phase <= nodes.length && planned.size < nodes.length;
+    phase++
+  ) {
+    // For each phase, find nodes whose dependencies are met
+    // ...
+  }
+
+  // Return the completed execution plan
+  return { executionPlan };
+}
+```
+
+The function performs the following key operations:
+
+1. **Entry Point Identification**: Finds the starting node (typically a LAUNCH_BROWSER node)
+2. **Dependency Analysis**: Analyzes which nodes depend on outputs from other nodes
+3. **Phase Organization**: Groups nodes that can run in parallel into phases
+4. **Validation**: Ensures all required inputs are provided either directly or via connections
+
+#### Example Input and Output
+
+**Input**: Flow definition with nodes and edges
 
 ```typescript
 // Input: Flow definition with nodes and edges
@@ -119,26 +269,98 @@ const executionPlan = [
 ];
 ```
 
-### Step 2: Database Phase Creation
+**Output**: Structured execution plan
+
+```typescript
+const executionPlan = [
+  {
+    phase: 1,
+    nodes: [
+      {
+        id: "node_1",
+        data: {
+          type: "LAUNCH_BROWSER",
+          inputs: { websiteUrl: "https://example.com" },
+        },
+      },
+    ],
+  },
+  {
+    phase: 2,
+    nodes: [
+      {
+        id: "node_2",
+        data: { type: "EXTRACT_TEXT", inputs: { selector: "h1" } },
+      },
+    ],
+  },
+  {
+    phase: 3,
+    nodes: [
+      {
+        id: "node_3",
+        data: { type: "CLOSE_BROWSER", inputs: {} },
+      },
+    ],
+  },
+];
+```
+
+### Purpose of Execution Planning
+
+The creation of an execution plan is a critical step that serves several important purposes:
+
+1. **Dependency Resolution**:
+   The execution plan analyzes which nodes depend on outputs from other nodes. This ensures operations happen in the correct order - you can't extract text from a webpage before launching a browser.
+
+2. **Phase Organization**:
+   Nodes are organized into ordered phases where each phase contains nodes that can execute in parallel. This optimizes execution while maintaining dependency constraints.
+
+3. **Input Validation**:
+   During plan creation, the system validates that all required inputs for each node are available - either directly provided by the user or through connections from other nodes. This prevents runtime errors due to missing inputs.
+
+4. **Execution Order Determination**:
+   The visual flow in the React Flow editor doesn't inherently contain execution order information - it's just a collection of connected nodes. The execution plan converts this into a deterministic sequence with clear ordering.
+
+5. **Database Representation**:
+   The plan is used to create database records that track execution status, enabling progress monitoring, retry capabilities, and execution history.
+
+Without this planning step, the system wouldn't know which order to run nodes in, couldn't validate if all required data would be available, and couldn't organize execution efficiently. The execution plan is the bridge between the user's visual workflow design and a concrete, executable process.
+
+#### Execution Plan vs. Flow Definition
+
+While the **Flow Definition** represents the visual workflow as designed in the editor (including positions, visual elements, and connections), the **Execution Plan** is a structured, dependency-ordered representation focused on execution order and node relationships:
+
+| Flow Definition                               | Execution Plan                        |
+| --------------------------------------------- | ------------------------------------- |
+| Complete UI state                             | Execution-focused structure           |
+| Contains visual metadata (positions, styling) | Contains only execution-relevant data |
+| Unordered nodes                               | Nodes organized into ordered phases   |
+| Contains all connections                      | Dependencies analyzed and validated   |
+
+### Step 2: Database Record Creation
 
 **File**: [`actions/workflows/runWorkflow.ts`](actions/workflows/runWorkflow.ts)
 
+The execution plan is used to create database records for each phase:
+
 ```typescript
-// Create ExecutionPhase records for each node
 const execution = await prisma.workflowExecution.create({
   data: {
     workflowId,
     userId,
     status: WorkflowExecutionStatus.PENDING,
-    definition: flowDefinition,
+    startedAt: new Date(),
+    trigger: WorkflowExectutionTrigger.MANUAL,
+    definition: flowDefinition, // Original flow definition stored here
     phases: {
       create: executionPlan.flatMap((phase) => {
         return phase.nodes.flatMap((node) => {
           return {
             userId,
-            status: ExecutionPhaseStatus.CREATED, // Initial status
+            status: ExecutionPhaseStatus.CREATED,
             number: phase.phase,
-            node: JSON.stringify(node), // Store entire node as JSON
+            node: JSON.stringify(node), // Each node stored in phase record
             name: TaskRegistry[node.data.type].label,
           };
         });
@@ -148,18 +370,17 @@ const execution = await prisma.workflowExecution.create({
 });
 ```
 
-**Database State After Creation**:
+### Step 3: Execution Initialization
 
-```sql
--- WorkflowExecution
-INSERT INTO WorkflowExecution (id, status, definition) VALUES
-('exec_123', 'PENDING', '{"nodes":[...], "edges":[...]}');
+**File**: [`lib/workflow/executeWorkflow.ts`](lib/workflow/executeWorkflow.ts)
 
--- ExecutionPhase records
-INSERT INTO ExecutionPhase (id, number, name, node, status) VALUES
-('phase_1', 1, 'Launch Browser', '{"id":"node_1",...}', 'CREATED'),
-('phase_2', 2, 'Extract Text', '{"id":"node_2",...}', 'CREATED'),
-('phase_3', 3, 'Close Browser', '{"id":"node_3",...}', 'CREATED');
+After the execution plan is created and stored, the execution process begins:
+
+```typescript
+export async function ExecuteWorkflow(executionId: string) {
+  // Phase retrieval and execution process
+  // ...
+}
 ```
 
 ---
@@ -241,96 +462,87 @@ async function executePhase(phase, node, environment, logCollector) {
 
 ## Data Transfer Between Nodes
 
-### Environment Setup Process
+### How Data Flows Through the Workflow
 
-**File**: [`lib/workflow/executeWorkflow.ts`](lib/workflow/executeWorkflow.ts) - `setupEnvironmentForPhase`
+Data flows through the workflow in a structured manner, following the connections defined in the editor:
+
+1. **Node Output Generation**: Each node executor can produce outputs using `environment.setOutput()`
+2. **Edge Connections**: Edges in the workflow connect source outputs to target inputs
+3. **Environment Management**: The execution environment manages access to outputs from previous nodes
+4. **Input Resolution**: When a node runs, its inputs are resolved from direct values or connected outputs
+
+```mermaid
+graph LR
+    A[Node 1 Execution] -->|Produces Output| B[Environment Storage]
+    B -->|Provides Input| C[Node 2 Execution]
+    C -->|Produces Output| D[Environment Storage]
+    D -->|Provides Input| E[Node 3 Execution]
+```
+
+### Data Flow Example
 
 ```typescript
-function setupEnvironmentForPhase(
-  node: AppNode,
-  environment: Environment,
-  edges: Edge[]
-) {
-  // Initialize this node's environment
-  environment.phases[node.id] = { inputs: {}, outputs: {} };
+// Step 1: LAUNCH_BROWSER produces a browser object
+environment.setOutput("browser", browserInstance);
 
-  // Get task definition
-  const inputs = TaskRegistry[node.data.type].inputs;
+// Step 2: When EXTRACT_TEXT executes, it receives the browser from Node 1
+const browser = environment.getInput("browser");
+// ...extraction logic...
+environment.setOutput("extractedText", extractedText);
 
-  for (const input of inputs) {
-    // Skip browser instances (handled separately)
-    if (input.type === TaskParamType.BROWSER_INSTANCE) continue;
+// Step 3: When SAVE_TO_FILE executes, it receives the extracted text
+const textToSave = environment.getInput("text");
+// ...file saving logic...
+```
 
-    // 1. Check if input has a direct value
-    const inputValue = node.data.inputs[input.name];
-    if (inputValue) {
-      environment.phases[node.id].inputs[input.name] = inputValue;
-      continue;
-    }
+### Execution Environment Interface
 
-    // 2. Get input from connected node's output
-    const connectedEdge = edges.find(
-      (edge) => edge.target === node.id && edge.targetHandle === input.name
-    );
+The execution environment provides methods to access inputs and set outputs:
 
-    if (connectedEdge) {
-      const outputValue =
-        environment.phases[connectedEdge.source].outputs[
-          connectedEdge.sourceHandle
-        ];
-      environment.phases[node.id].inputs[input.name] = outputValue;
-    }
-  }
+```typescript
+interface ExecutionEnvironment {
+  // Access inputs (from direct values or connected outputs)
+  getInput: (name: string) => any;
+
+  // Set outputs for downstream nodes
+  setOutput: (name: string, value: any) => void;
+
+  // Get all available outputs from previous nodes
+  getAllOutputs: () => Record<string, any>;
+
+  // Logging capabilities
+  log: LogCollector;
+
+  // Browser management (specific to web automation)
+  getBrowser: () => Browser | null;
+  setBrowser: (browser: Browser) => void;
 }
 ```
 
-### Data Transfer Example
+### Connecting Flow Definition to Data Transfer
 
-**Scenario**: Launch Browser → Extract Text → Close Browser
+The edges defined in the React Flow editor directly control how data flows between nodes:
 
 ```typescript
-// Phase 1: Launch Browser Execution
-// BEFORE execution
-environment = {
-  phases: {
-    "node_1": { inputs: { websiteUrl: "https://example.com" }, outputs: {} }
-  },
-  browser: undefined,
-  page: undefined
-}
-
-// DURING LaunchBrowserExecutor execution
-const browser = await puppeteer.launch();
-environment.setBrowser(browser); // Sets environment.browser
-const page = await browser.newPage();
-environment.setPage(page); // Sets environment.page
-environment.setOutput("webPage", "browser_ready"); // Sets output
-
-// AFTER execution
-environment = {
-  phases: {
-    "node_1": {
-      inputs: { websiteUrl: "https://example.com" },
-      outputs: { webPage: "browser_ready" }
-    }
-  },
-  browser: <Browser Instance>,
-  page: <Page Instance>
-}
-
-// Phase 2: Extract Text Setup
-// setupEnvironmentForPhase finds the edge connection:
-const edge = { source: "node_1", target: "node_2", sourceHandle: "webPage", targetHandle: "webPage" }
-
-// Sets up inputs from previous phase output
-environment.phases["node_2"] = {
-  inputs: {
-    webPage: "browser_ready", // From node_1 output
-    selector: "h1" // From node configuration
-  },
-  outputs: {}
+// From the flow definition
+{
+  edges: [
+    {
+      source: "node_1", // Source node ID
+      sourceHandle: "browser", // Output name from source node
+      target: "node_2", // Target node ID
+      targetHandle: "browser", // Input name on target node
+    },
+  ];
 }
 ```
+
+This edge definition means:
+
+- The output named "browser" from node_1
+- Will be provided as the input named "browser" to node_2
+
+The execution environment handles resolving these connections at runtime, making the appropriate values available to each node as it executes.
 
 ---
 

@@ -16,14 +16,14 @@ const NodeComponent = memo((props: NodeProps) => {
   const nodeData = props.data as AppNodeData;
   const task = TaskRegistry[nodeData.type];
   const { getNodeStatus } = useWorkflowExecution();
-  
+
   const executionStatus = getNodeStatus(props.id);
-  
+
   return (
     <NodeCard nodeId={props.id} isSelected={!!props.selected}>
       <NodeStatusIndicator status={executionStatus} />
       {DEV_MODE && <Badge>DEV:{props.id}</Badge>}
-      <NodeHeader taskType={nodeData.type} />
+      <NodeHeader taskType={nodeData.type} nodeId={props.id} />
       <NodeInputs>
         {task.inputs.map((input) => (
           // eslint-disable-next-line react/jsx-key

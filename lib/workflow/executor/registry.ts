@@ -10,6 +10,7 @@ import { FillInputExecutor } from "./FillInputExecutor";
 import { NavigateUrlExecutor } from "./NavigateUrlExecutor";
 import { PaginationExecutor } from "./PaginationExecutor";
 import { CSVExportExecutor } from "./CSVExportExecutor";
+import { CustomJavaScriptExecutor } from "./CustomJavaScriptExecutor";
 
 type ExecutorFn<T extends WorkflowTask> = (
   environment: ExecutionEnvironment<T>
@@ -29,4 +30,5 @@ export const ExecutorRegistry: RegistryType = {
   NAVIGATE_URL: NavigateUrlExecutor,
   PAGINATION: PaginationExecutor,
   CSV_EXPORT: CSVExportExecutor,
+  CUSTOM_JAVASCRIPT: CustomJavaScriptExecutor,
 };

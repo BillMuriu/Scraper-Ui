@@ -8,6 +8,7 @@ export enum TaskType {
   NAVIGATE_URL = "NAVIGATE_URL",
   PAGINATION = "PAGINATION",
   CSV_EXPORT = "CSV_EXPORT",
+  CUSTOM_JAVASCRIPT = "CUSTOM_JAVASCRIPT",
 }
 
 export enum TaskParamType {

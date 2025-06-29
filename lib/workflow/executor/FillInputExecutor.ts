@@ -11,7 +11,7 @@ export async function FillInputExecutor(
     if (!selector) {
       environment.log.error("input->selector is not defined");
     }
-    const value = environment.getInput("Selector");
+    const value = environment.getInput("Value");
     if (!value) {
       environment.log.error("input->value is not defined");
     }
