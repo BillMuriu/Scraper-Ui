@@ -8,9 +8,11 @@ export async function CloseBrowserExecutor(
     environment.log.info("Starting browser cleanup and closure...");
 
     const browser = environment.getBrowser();
-    
+
     if (!browser) {
-      environment.log.info("No browser instance found - already closed or never launched");
+      environment.log.info(
+        "No browser instance found - already closed or never launched"
+      );
       environment.setOutput("Closure Status", "no_browser_found");
       return true;
     }
@@ -42,11 +44,10 @@ export async function CloseBrowserExecutor(
 
     environment.setOutput("Closure Status", "success");
     return true;
-
   } catch (error: any) {
     environment.log.error(`Failed to close browser: ${error.message}`);
     environment.setOutput("Closure Status", `failed: ${error.message}`);
-    
+
     // Even if closing fails, we should return true to not break the workflow
     // The browser process will eventually be cleaned up by the system
     return true;
